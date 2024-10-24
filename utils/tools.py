@@ -65,7 +65,7 @@ def adjust_learning_rate(optimizer, epoch, args):
             param_group['lr'] = lr
         print('Updating learning rate to {}'.format(lr))
 # Drawing
-def distribution_scatter(energy, true, pred, threshold,s=20,alpha=0.9,figsize=(8,6), save_path='graph_result'):
+def distribution_scatter(energy, true, pred, threshold,s=20,alpha=0.9,figsize=(8,6), save_path='./graph_result'):
     tp_shown = False
     tn_shown = False
     fp_shown = False
@@ -114,7 +114,7 @@ def distribution_scatter(energy, true, pred, threshold,s=20,alpha=0.9,figsize=(8
     if save_path:
         plt.savefig(save_path + '/Scatter_with_Density.png', dpi=1200, bbox_inches='tight', transparent=True)
     plt.show()
-def barChartOnAccuracy(labels, accuracy, precision, recall, f1_score, save_path='graph_result'):
+def barChartOnAccuracy(labels, accuracy, precision, recall, f1_score, save_path='./graph_result'):
     '''
     # 示例调用
     labels = ["DFMT-Net", "XGBoost", "LSTM"]
@@ -154,7 +154,7 @@ def barChartOnAccuracy(labels, accuracy, precision, recall, f1_score, save_path=
     if save_path:
         plt.savefig(save_path+'/barChartOnAccuracy.png', format="png", dpi=600, transparent=True)
     plt.show()
-def loss_accuracy_f1_curve_compare(lstm_data, dp64qam_data, save_path='graph_result'):
+def loss_accuracy_f1_curve_compare(lstm_data, dp64qam_data, save_path='./graph_result'):
     # lstm_data = np.load("D:\lumin\lll\OFC\pic\python\\lstm_training_histories.npy", allow_pickle=True).item()
     # dp64qam_data = np.load("D:\lumin\lll\OFC\pic\python\\dp64qam_training_histories.npy", allow_pickle=True).item()
 
@@ -222,7 +222,7 @@ def loss_accuracy_f1_curve_compare(lstm_data, dp64qam_data, save_path='graph_res
     if save_path:
         plt.savefig(save_path+"/loss_accuracy_f1_curve_compare.png", dpi=1200, bbox_inches='tight', transparent=True)
     plt.show()
-def loss_accuracy_f1_curve(train_loss_history,vali_loss_history,test_loss_history,f1_score_history,save_path='graph_result'):
+def loss_accuracy_f1_curve(train_loss_history,vali_loss_history,test_loss_history,f1_score_history,save_path='./graph_result'):
 
 
     f1_score = np.array(f1_score_history)[:, 3]  # F1 Score
@@ -259,7 +259,7 @@ def loss_accuracy_f1_curve(train_loss_history,vali_loss_history,test_loss_histor
         plt.savefig(save_path+"/loss_accuracy_f1_curve.png", dpi=1200, bbox_inches='tight', transparent=True)
     plt.show()
 
-def confusion_maxtrix_graph(y_true, y_pred, save_path='graph_result'):
+def confusion_maxtrix_graph(y_true, y_pred, save_path='./graph_result'):
     from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score,confusion_matrix
     conf_matrix = confusion_matrix(y_true, y_pred)
     # 计算准确率、精确率、召回率、F1分数
@@ -289,7 +289,7 @@ def confusion_maxtrix_graph(y_true, y_pred, save_path='graph_result'):
     if save_path:
         plt.savefig(save_path+"/confusion_matrix.png", dpi=1200, bbox_inches='tight', transparent=True)
     plt.show()
-def channel_Display(num,save_path='graph_result'):
+def channel_Display(num,save_path='./graph_result'):
     def generate_random_ellipse(ax, center, width, height, angle):
         """生成一个椭圆并绘制在给定的轴上，使用深颜色"""
         ellipse = patches.Ellipse(center, width, height, angle=angle, color='grey', alpha=0.5)  # 修改颜色和透明度
@@ -331,7 +331,7 @@ def channel_Display(num,save_path='graph_result'):
         plt.savefig(save_path+"channelCondition.png", format="png", dpi=600, bbox_inches='tight', pad_inches=0,transparent=True)
         plt.show()
     create_fso_channel(num)
-def plot_energy_distribution(train_energy, test_energy, threshold, figsize=(10, 6),save_path='graph_result'):
+def plot_energy_distribution(train_energy, test_energy, threshold, figsize=(10, 6),save_path='./graph_result'):
     """
     绘制训练集和测试集的能量分布图，并标记超过阈值的比例
 
