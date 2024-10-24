@@ -65,38 +65,40 @@ def adjust_learning_rate(optimizer, epoch, args):
             param_group['lr'] = lr
         print('Updating learning rate to {}'.format(lr))
 # Drawing
-def distribution_scatter(energy, true, pred, threshold,s=20,alpha=0.9,figsize=(8,6), save_path='./graph_result'):
+def distribution_scatter(energy, true, pred, threshold, s=20, alpha=0.9, figsize=(8, 6), save_path='./graph_result'):
     tp_shown = False
     tn_shown = False
     fp_shown = False
     fn_shown = False
     energy, true, pred = shuffle(energy, true, pred)
+    # print(f"Energy shape: {energy.shape}, True shape: {true.shape}, Pred shape: {pred.shape}")
     fig, ax = plt.subplots(figsize=figsize)
-    for i, (energy, label, prediction) in enumerate(zip(energy, true, pred)):
+    for i, (e, label, prediction) in enumerate(zip(energy, true, pred)):
         if prediction == 1 and label == 1:
             if not tp_shown:
-                plt.scatter(i, energy, color='blue', s=s, alpha=alpha, label='True Positive (TP)', edgecolor='black')
+                plt.scatter(i, e, color='blue', s=s, alpha=alpha, label='True Positive (TP)', edgecolor='black')
                 tp_shown = True
             else:
-                plt.scatter(i, energy, color='blue', s=s, alpha=alpha, edgecolor='black')
+                plt.scatter(i, e, color='blue', s=s, alpha=alpha, edgecolor='black')
         elif prediction == 0 and label == 0:
             if not tn_shown:
-                plt.scatter(i, energy, color='red', s=s, alpha=alpha, label='True Negative (TN)', edgecolor='black')
+                plt.scatter(i, e, color='red', s=s, alpha=alpha, label='True Negative (TN)', edgecolor='black')
                 tn_shown = True
             else:
-                plt.scatter(i, energy, color='red', s=s, alpha=alpha, edgecolor='black')
+                plt.scatter(i, e, color='red', s=s, alpha=alpha, edgecolor='black')
         elif prediction == 1 and label == 0:
             if not fp_shown:
-                plt.scatter(i, energy, color='green', s=s, alpha=alpha, label='False Positive (FP)', edgecolor='black')
+                plt.scatter(i, e, color='green', s=s, alpha=alpha, label='False Positive (FP)', edgecolor='black')
                 fp_shown = True
             else:
-                plt.scatter(i, energy, color='green', s=s, alpha=alpha, edgecolor='black')
+                plt.scatter(i, e, color='green', s=s, alpha=alpha, edgecolor='black')
         elif prediction == 0 and label == 1:
             if not fn_shown:
-                plt.scatter(i, energy, color='orange', s=s, alpha=alpha, label='False Negative (FN)', edgecolor='black')
+                plt.scatter(i, e, color='orange', s=s, alpha=alpha, label='False Negative (FN)', edgecolor='black')
                 fn_shown = True
             else:
-                plt.scatter(i, energy, color='orange', s=s, alpha=alpha, edgecolor='black')
+                plt.scatter(i, e, color='orange', s=s, alpha=alpha, edgecolor='black')
+
     plt.axhline(y=threshold, color='black', linestyle='--', label=f'Threshold = {threshold:.6f}', alpha=0.9)
     divider = make_axes_locatable(ax) # 边缘分布图
     ax_density = divider.append_axes("right", size="15%", pad=0.1)
@@ -394,8 +396,6 @@ def score_my(y_true, y_pred, digits=4,detail=False):
     report = {label: {'precision': 0, 'recall': 0, 'f1-score': 0, 'support': 0} for label in labels}
 
     for label in labels:
-        print(y_pred[0], y_true[0])
-        print(labels)
         TP = sum((y_true == label) & (y_pred == label))  # True Positives
         FP = sum((y_true != label) & (y_pred == label))  # False Positives
         FN = sum((y_true == label) & (y_pred != label))  # False Negatives

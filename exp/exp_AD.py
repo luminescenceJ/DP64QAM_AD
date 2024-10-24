@@ -6,13 +6,14 @@ import gc
 
 from data_provider.Dataset import DP64QAM_Dataset
 from exp.exp_basic import Exp_Basic
-from utils.tools import EarlyStopping, adjust_learning_rate,loss_accuracy_f1_curve,score_my
+from utils.tools import EarlyStopping, adjust_learning_rate,loss_accuracy_f1_curve,score_my,distribution_scatter,plot_energy_distribution
 
 import torch
 import torch.nn as nn
 import torch.multiprocessing
 from torch import optim
 from torch.utils.data import DataLoader
+
 torch.multiprocessing.set_sharing_strategy('file_system')
 torch.autograd.set_detect_anomaly(True)
 warnings.filterwarnings('ignore')
@@ -67,6 +68,8 @@ class Exp_Anomaly_Detection(Exp_Basic):
         path = os.path.join(self.args.checkpoints, setting)
         if not os.path.exists(path):
             os.makedirs(path)
+        if not os.path.exists("./graph_result"):
+            os.makedirs("./graph_result")
 
         time_now = time.time()
         train_steps = len(train_loader)
@@ -163,6 +166,7 @@ class Exp_Anomaly_Detection(Exp_Basic):
         threshold = self.args.ratio * np.mean(train_energy)
         print(f"threshold in test is : {threshold:.5f}")
 
+        attens_energy = []
         with torch.no_grad():
             for i, (batch_x, batch_y) in enumerate(vali_loader):
                 batch_x = batch_x.float().to(self.device)
@@ -193,9 +197,8 @@ class Exp_Anomaly_Detection(Exp_Basic):
         gt = np.append(valid_gt, test_gt)
         energy = np.append(valid_energy,test_energy)
 
-        from utils.tools import score_my,distribution_scatter,plot_energy_distribution
-        score_my(gt,pred,4,True)
-        distribution_scatter(energy,gt,pred,self.threshold)
+        # score_my(gt,pred,4,True)
+        distribution_scatter(energy,gt,pred,threshold)
         plot_energy_distribution(valid_energy,test_energy,threshold)
 
     def F1_vali(self,vali_loss, vali_label, test_loss, test_label, threshold):

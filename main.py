@@ -72,7 +72,7 @@ if __name__ == '__main__':
     )
     exp = Exp(args)
     print('>>>>>>>start training : {}>>>>>>>>>>>>>>>>>>>>>>>>>>'.format(setting))
-    exp.train(setting)
+    # exp.train(setting)
     print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
     exp.test(setting)
     torch.cuda.empty_cache()
