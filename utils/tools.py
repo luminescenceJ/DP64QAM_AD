@@ -24,6 +24,7 @@ class EarlyStopping:
         self.val_loss_min = np.inf
         self.delta = delta
 
+
     def __call__(self, val_loss, model, path):
         score = -val_loss
         if self.best_score is None:
