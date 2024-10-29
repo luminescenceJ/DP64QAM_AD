@@ -1,5 +1,5 @@
 import torch
-from models import DPQAM64_recon,DPQAM64_classifier,LSTM_recon,LSTM_classifier
+from models import DPQAM64_recon,DPQAM64_classifier,LSTM_recon,LSTM_classifier,Recon,Classifier
 class Exp_Basic(object):
     def __init__(self, args):
         self.args = args
@@ -7,7 +7,9 @@ class Exp_Basic(object):
             'DPQAM64_recon':DPQAM64_recon,
             'DPQAM64_classifier':DPQAM64_classifier,
             'LSTM_recon':LSTM_recon,
-            'LSTM_classifier':LSTM_classifier
+            'LSTM_classifier':LSTM_classifier,
+            'recon':Recon,
+            'classifier':Classifier,
         }
         self.device = self._acquire_device()
         self.model = self._build_model().to(self.device)

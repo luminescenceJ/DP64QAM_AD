@@ -10,6 +10,7 @@ from matplotlib.font_manager import FontProperties
 from sklearn.utils import shuffle
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy.interpolate import interp1d
+from scipy.spatial.distance import cosine
 
 plt.switch_backend('agg')
 
@@ -440,3 +441,75 @@ def score_my(y_true, y_pred, digits=4,detail=False):
         print(f"accuracy:{accuracy:.4f},precision:{macro_precision:.4f},recall:{macro_recall:.4f},f1-score:{macro_f1:.4f}")
     return accuracy,weighted_precision,weighted_recall,weighted_f1
 
+def visualize(dataset,model,batch_size=16,num=16384,itr=0,save_path='./graph_result',save_name='valid'):
+
+    (data, label) = dataset[0:batch_size]
+    output = model(torch.tensor(data).float()).cpu().detach().numpy()
+
+    time_ori = data[:, :, 0]
+    freq_ori = data[:, :, 1]
+    time_pred = output[:, :, 0]
+    freq_pred = output[:, :, 1]
+
+    print(f"label is {label},itr is {itr}")
+    # mse
+    time_mse = np.mean((time_ori - time_pred) ** 2)
+    freq_mse = np.mean((freq_ori - freq_pred) ** 2)
+    print(f"time mse: {time_mse:.7f}, freq mse: {freq_mse:.7f}, total mse: {time_mse + freq_mse:.7f}")
+
+    # cos similarity
+    time_cos_sim = 1 - cosine(time_ori[itr], time_pred[itr])
+    freq_cos_sim = 1 - cosine(freq_ori[itr], freq_pred[itr])
+    print(f"time cos_sim :{time_cos_sim:.5f},freq cos_sim:{freq_cos_sim:.5f}")
+
+    # 创建一个图形对象
+    fig, axs = plt.subplots(2, 1, figsize=(10, 8))  # 2行1列的子图
+    # 绘制时域数据
+    axs[0].set_title("Time")
+    axs[0].plot(time_ori[itr, :num], 'blue', label='real')
+    axs[0].plot(time_pred[itr, :num], 'red', label='pred')
+    axs[0].plot(abs(time_ori[itr, :num] - time_pred[itr, :num]), 'yellow', label='diff')
+    axs[0].legend()
+    # 绘制频域数据
+    axs[1].set_title("Freq")
+    axs[1].plot(freq_ori[itr, :num], 'blue', label='real')
+    axs[1].plot(freq_pred[itr, :num], 'red', label='pred')
+    axs[1].plot(abs(freq_ori[itr, :num] - freq_pred[itr, :num]), 'yellow', label='diff')
+    axs[1].legend()
+    if save_path:
+        plt.savefig(save_path + f"/visualize_{save_name}.png", dpi=600, bbox_inches='tight', transparent=True)
+    plt.tight_layout()
+    plt.show()
+
+
+
+
+# dataset, _ = exp._get_data(flag='test')  # test中包含异常 不需要可视乎验证
+# exp.model.eval()
+# exp.model.to("cpu")
+# (datax, label) = dataset[0:exp.args.batch_size]
+# output = exp.model(torch.tensor(datax).float()).cpu().detach().numpy()
+# # # Check the shapes
+# print("datax shape:", datax.shape)
+# print("output shape:", output.shape)
+# time_ori = datax[:, :, 0]  # bs,16384,2
+# freq_ori = datax[:, :, 1]
+# time_pred = output[:, :, 0]
+# freq_pred = output[:, :, 1]
+# visualize(time_ori, time_pred, freq_ori, freq_pred, label, num=16384, itr=7)
+#
+# dataset, _ = exp._get_data(flag='valid')  # test中包含异常 不需要可视乎验证
+# exp.model.eval()
+# exp.model.to("cpu")
+# (datax, label) = dataset[0:exp.args.batch_size]
+# output = exp.model(torch.tensor(datax).float()).cpu().detach().numpy()
+# # # Check the shapes
+# print("datax shape:", datax.shape)
+# print("output shape:", output.shape)
+# time_ori = datax[:, :, 0]  # bs,16384,2
+# freq_ori = datax[:, :, 1]
+# time_pred = output[:, :, 0]
+# freq_pred = output[:, :, 1]
+
+
+# visualize(time_ori, time_pred, freq_ori, freq_pred, label, num=16384, itr=7)

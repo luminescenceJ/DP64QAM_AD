@@ -6,7 +6,7 @@ import gc
 
 from data_provider.Dataset import DP64QAM_Dataset
 from exp.exp_basic import Exp_Basic
-from utils.tools import EarlyStopping, adjust_learning_rate,loss_accuracy_f1_curve,score_my,distribution_scatter,plot_energy_distribution
+from utils.tools import EarlyStopping, adjust_learning_rate,loss_accuracy_f1_curve,score_my,distribution_scatter,plot_energy_distribution,visualize
 
 import torch
 import torch.nn as nn
@@ -197,9 +197,13 @@ class Exp_Anomaly_Detection(Exp_Basic):
         gt = np.append(valid_gt, test_gt)
         energy = np.append(valid_energy,test_energy)
 
-        # score_my(gt,pred,4,True)
+        visualize(vali_data,self.model, batch_size=self.args.batch_size, num=self.args.out_len, itr=2,save_name='vali')
+        visualize(test_data,self.model, batch_size=self.args.batch_size, num=self.args.out_len, itr=2,save_name='test')
+
+        score_my(gt,pred,4,True)
         distribution_scatter(energy,gt,pred,threshold)
         plot_energy_distribution(valid_energy,test_energy,threshold)
+
 
     def F1_vali(self,vali_loss, vali_label, test_loss, test_label, threshold):
         total_loss = np.append(vali_loss, test_loss, axis=0)

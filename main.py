@@ -13,7 +13,7 @@ np.random.seed(fix_seed)
 parser = argparse.ArgumentParser(description='')
 
 # model choose
-parser.add_argument('--model', type=str,  default='DPQAM64_recon',help='options: [DPQAM64,DPQAM64Classifier,LSTMrecon,LSTMClassifier]')
+parser.add_argument('--model', type=str,  default='recon',help='options: [classifier,recon,DPQAM64_recon,DPQAM64_classifier,LSTM_recon,LSTM_classifier]')
 parser.add_argument('--modulation', type=int,  default=12,help='dp-qam64 ,a signal represent 12 bit')
 
 # path config
@@ -72,7 +72,7 @@ if __name__ == '__main__':
     )
     exp = Exp(args)
     print('>>>>>>>start training : {}>>>>>>>>>>>>>>>>>>>>>>>>>>'.format(setting))
-    # exp.train(setting)
+    exp.train(setting)
     print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
     exp.test(setting)
     torch.cuda.empty_cache()

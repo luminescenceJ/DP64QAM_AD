@@ -46,7 +46,7 @@ class Exp_Anomaly_Classification(Exp_Basic):
         #     model = DPQAM64Classifier(self.args, Transformer_model_time, Reduce_model_time, Transformer_model_freq,
         #                               Reduce_model_freq).float()
 
-        model = self.model_dict['Classifier'](self.args).float()
+        model = self.model_dict[self.args.model](self.args).float()
         return model
 
 
