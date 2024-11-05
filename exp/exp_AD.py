@@ -171,7 +171,8 @@ class Exp_Anomaly_Detection(Exp_Basic):
             for i, (batch_x, batch_y) in enumerate(vali_loader):
                 batch_x = batch_x.float().to(self.device)
                 outputs = self.model(batch_x)
-                score = torch.mean(criterion(batch_x, outputs), dim=(1, 2)).detach().cpu().numpy()  # [bs,]
+                score = torch.mean(criterion(batch_x, outputs), dim=(1, 2)).detach().cpu().numpy()  # MSE (bs,1)
+                # score +=
                 attens_energy.append(score)
                 valid_labels.append(batch_y)
         valid_energy = np.array(attens_energy).reshape(-1)

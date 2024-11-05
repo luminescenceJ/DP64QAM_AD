@@ -10,8 +10,8 @@ from matplotlib.font_manager import FontProperties
 from sklearn.utils import shuffle
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy.interpolate import interp1d
-from scipy.spatial.distance import cosine
-
+from scipy.spatial.distance import euclidean, cityblock, chebyshev, cosine
+from fastdtw import fastdtw  # 需要安装 fastdtw 库
 plt.switch_backend('agg')
 
 # Training
@@ -462,6 +462,8 @@ def visualize(dataset,model,batch_size=16,num=16384,itr=0,save_path='./graph_res
     freq_cos_sim = 1 - cosine(freq_ori[itr], freq_pred[itr])
     print(f"time cos_sim :{time_cos_sim:.5f},freq cos_sim:{freq_cos_sim:.5f}")
 
+
+
     # 创建一个图形对象
     fig, axs = plt.subplots(2, 1, figsize=(10, 8))  # 2行1列的子图
     # 绘制时域数据
@@ -481,6 +483,39 @@ def visualize(dataset,model,batch_size=16,num=16384,itr=0,save_path='./graph_res
     plt.tight_layout()
     plt.show()
 
+
+
+def calculate_errors(normal_input, abnormal_input):
+    # 确保输入为numpy数组
+    normal_input = np.array(normal_input).flatten()
+    abnormal_input = np.array(abnormal_input).flatten()
+
+    print(normal_input.shape)
+
+    # 计算误差
+    euclidean_distance = euclidean(normal_input, abnormal_input)
+    manhattan_distance = cityblock(normal_input, abnormal_input)
+    chebyshev_distance = chebyshev(normal_input, abnormal_input)
+    dtw_distance = fastdtw(normal_input, abnormal_input)[0]
+    cosine_similarity = 1 - cosine(normal_input.flatten(), abnormal_input.flatten())
+
+    print(f"Euclidean Distance: {euclidean_distance}")
+    print(f"Manhattan Distance: {manhattan_distance}")
+    print(f"Chebyshev Distance: {chebyshev_distance}")
+    print(f"Dynamic Time Warping Distance: {dtw_distance}")
+    print(f"Cosine Similarity: {cosine_similarity}")
+
+    # 将误差放入数组中
+    errors = np.array([euclidean_distance, manhattan_distance, chebyshev_distance, dtw_distance, cosine_similarity])
+
+    # 线性加权示例（可以根据需要调整权重）
+    weights = np.array([1, 1, 1, 1, -1e-1])  # 注意：余弦相似度需要取负值（越高越好）
+    weighted_error = np.dot(weights, errors)
+
+    # 打印结果
+    print(f"Errors: {errors}")
+    print(f"Weighted Total Error: {weighted_error}")
+    return np.array([euclidean_distance, manhattan_distance, chebyshev_distance,dtw_distance,cosine_similarity])
 
 
 

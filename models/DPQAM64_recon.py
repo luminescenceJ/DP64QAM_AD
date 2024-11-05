@@ -31,6 +31,8 @@ class CNNReduce(nn.Module):
         x = F.gelu(self.bn2(self.conv2(x)))
         x = x.permute(0, 2, 1)  # 变为 [bs,1366,12,]
         return x
+
+
 class CNNRestore(nn.Module):
     def __init__(self, args):
         super(CNNRestore, self).__init__()

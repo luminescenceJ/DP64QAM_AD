@@ -113,3 +113,25 @@ def winsorize_per_channel(data, lower_percentile=0.03, upper_percentile=0.97):
 
     return data
 
+# if __name__ == '__main__':
+#     class args():
+#         def __init__(self):
+#             self.batch_size = 8
+#             self.seq_len = 16384
+#             self.seq_ch = 2
+#             self.iteration = 540
+#             self.path = "D:\lumin\DATASET/540itr"
+#     args_ = args()
+#     b = MakeDataset(args_, pattern='normal', quickLoad=True)
+#     data_new = b.get_data()
+#     print(data_new.shape)
+#     args_.iteration = 270
+#     args_.path = "D:\lumin\DATASET\\NewData"
+#     c = MakeDataset(args_, pattern='normal',quickLoad=True)
+#     data_old = c.get_data()
+#     print(data_old.shape)
+#     data = np.concatenate((data_new, data_old), axis=1)
+#     b.data = data
+#     print(data.shape)
+#     np.save(os.path.join("D:\lumin\DATASET/540itr","normal" + "-" + 'data.npy'), data)
+#     print("done")
