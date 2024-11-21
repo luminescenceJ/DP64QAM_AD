@@ -1,6 +1,6 @@
 import argparse
 import torch
-from exp.exp_AD import Exp_Anomaly_Detection
+from exp.exp_AD_2 import Exp_Anomaly_Detection
 from exp.exp_Classifier import Exp_Anomaly_Classification
 import random
 import numpy as np
@@ -35,7 +35,7 @@ parser.add_argument('--out_ch', type=int, default=2, help='expected final output
 
 # model define
 parser.add_argument('--dropout', type=float, default=0.3, help='dropout')
-parser.add_argument('--d_model', type=int, default=16, help='dimension of model')
+parser.add_argument('--d_model', type=int, default=128, help='dimension of model')
 parser.add_argument('--n_heads', type=int, default=2, help='num of heads')
 parser.add_argument('--n_layers', type=int, default=2, help='num of layers')
 parser.add_argument('--activation', type=str, default='gelu', help='activation')
@@ -83,3 +83,4 @@ if __name__ == '__main__':
     # print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
     # exp_c.test(setting)
     # torch.cuda.empty_cache()
+

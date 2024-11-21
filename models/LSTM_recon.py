@@ -74,23 +74,23 @@ class Model(nn.Module):
         return outputs
 
 
-
-
-class args():
-    pass
-args.modulation = 12
-args.reduce_ch = 12
-args.seq_len = 16384
-args.batch_size = 8
-model = Model(args)
-
-input_data = torch.randn(8, 16384, 2)
-output_data = model(input_data)
-
-from torchinfo import summary
-
-summary(model,(8,16384,2))
-
-# 输出结果形状
-print("Input shape:", input_data.shape)
-print("Output shape:", output_data.shape)
+#
+#
+# class args():
+#     pass
+# args.modulation = 12
+# args.reduce_ch = 12
+# args.seq_len = 16384
+# args.batch_size = 8
+# model = Model(args)
+#
+# input_data = torch.randn(8, 16384, 2)
+# output_data = model(input_data)
+#
+# from torchinfo import summary
+#
+# summary(model,(8,16384,2))
+#
+# # 输出结果形状
+# print("Input shape:", input_data.shape)
+# print("Output shape:", output_data.shape)

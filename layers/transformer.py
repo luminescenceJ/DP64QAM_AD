@@ -15,15 +15,20 @@ class ProbAttention(nn.Module):
         self.dropout = nn.Dropout(attention_dropout)
 
     def _prob_QK(self, Q, K, sample_k, n_top):  # n_top: c*ln(L_q)
+        # 这行代码的目的是计算查询和键之间相似度的“稀疏度”度量，衡量每个查询是否在与所有键的匹配中比较突出（最大值远大于平均值）还是均匀分布。
+        # 这个稀疏度度量 M 被用来确定哪些查询会在后续的步骤中被选中。
         # Q [B, H, L, D]
         B, H, L_K, E = K.shape
         _, _, L_Q, _ = Q.shape
 
         # calculate the sampled Q_K
-        K_expand = K.unsqueeze(-3).expand(B, H, L_Q, L_K, E)
-        index_sample = torch.randint(L_K, (L_Q, sample_k))  # real U = U_part(factor*ln(L_k))*L_q
-        K_sample = K_expand[:, :, torch.arange(L_Q).unsqueeze(1), index_sample, :]
-        Q_K_sample = torch.matmul(Q.unsqueeze(-2), K_sample.transpose(-2, -1)).squeeze(-2)
+        K_expand = K.unsqueeze(-3).expand(B, H, L_Q, L_K, E) # 4,1366,8,8,6
+        index_sample = torch.randint(L_K, (L_Q, sample_k))  # real U = U_part(factor*ln(L_k))*L_q 8,8
+        K_sample = K_expand[:, :, torch.arange(L_Q).unsqueeze(1), index_sample, :] # 4,1366,8,8,6
+        Q_K_sample = torch.matmul(Q.unsqueeze(-2), K_sample.transpose(-2, -1)).squeeze(-2) #4,1366,8
+        # Q.unsqueeze(-2)  [B, H, L_Q, 1, D]
+        # K_sample.transpose(-2, -1)  [B, H, L_Q, D, L_K]
+        # 矩阵乘法中，最后两个维度乘，(1,D) * (D,L_K) = (1,L_K) 。然后将1这个维度 squeeze掉
 
         # find the Top_k query with sparisty measurement
         M = Q_K_sample.max(-1)[0] - torch.div(Q_K_sample.sum(-1), L_K)
@@ -172,16 +177,17 @@ class Model(nn.Module):
         self.decoder = nn.Linear(self.args.d_model, args.reduce_ch)
 
     def forward(self, x, mask=None):
-        batch_size, seq_len, input_dim = x.shape  # bs,reduce_len,reduce_ch == 27,1366,12
-        # assert seq_len == 1366 and input_dim == 12, f"seq_len=1366, input_dim=12 but got seq_len={seq_len}, input_dim={input_dim}"
-        x = x.reshape(batch_size * seq_len, input_dim)  # [bs*seq_len , 12]
-        x = self.encoder(x)  # [bs*seq_len , d_model] = [bs*seq_len , 256]
-        x = x.view(batch_size, seq_len, -1)
+        batch_size, seq_len, d_model = x.shape  # bs,reduce_len,reduce_ch == bs,1366,d_model
+
+        # x = x.reshape(batch_size * seq_len, input_dim)  # [bs*seq_len , 12]
+        # x = self.encoder(x)  # [bs*seq_len , d_model] = [bs*seq_len , 256]
+        # x = x.view(batch_size, seq_len, -1)
+
         for layer in self.layers:
             x = layer(x, mask)
         x = x.view(batch_size * seq_len, -1)
         x = self.decoder(x)  # [bs*seq_len , 12]
-        x = x.view(batch_size, seq_len, input_dim)  # [bs,seq_len , 12]
+        x = x.view(batch_size, seq_len, 12)  # [bs,seq_len , 12]
         return x
 
 

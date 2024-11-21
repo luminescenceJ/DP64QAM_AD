@@ -4,18 +4,23 @@ import torch.nn.functional as F
 import math
 from layers import transformer
 
-class CNNReduce(nn.Module):
-    def __init__(self,args):
-        super(CNNReduce, self).__init__()
+class MixerReduce(nn.Module):
+    def __init__(self,args,kernel_sizes=[3, 5, 7]):
+        super(MixerReduce, self).__init__()
         self.args = args
-        # 第一层卷积，升维，将 12 -> 更高的维度
-        self.conv1 = nn.Conv1d(in_channels=self.args.modulation, out_channels=self.args.CNN_dim, kernel_size=3, padding=1)
-        self.bn1 = nn.BatchNorm1d(self.args.CNN_dim)
-        # self.gelu1 = nn.GeLU()
-        # 第二层卷积，降低维度
-        self.conv2 = nn.Conv1d(in_channels=self.args.CNN_dim, out_channels=self.args.reduce_ch, kernel_size=3,padding=1)
-        self.bn2 = nn.BatchNorm1d(self.args.reduce_ch)
-        # self.gelu2 = nn.GeLU()
+        self.kernel_sizes = kernel_sizes  # 不同卷积核大小列表
+
+        # 使用ModuleList来存储不同卷积层
+        self.conv_ups = nn.ModuleList()
+        self.bn_ups = nn.ModuleList()
+
+        # 为每个卷积核大小创建不同的卷积层
+        for kernel_size in kernel_sizes:
+            self.conv_ups.append(
+                nn.Conv1d(in_channels=self.args.modulation, out_channels=self.args.d_model,
+                          kernel_size=kernel_size, padding=(kernel_size // 2))
+            )
+            self.bn_ups.append(nn.BatchNorm1d(self.args.d_model))
 
     def Padding(self, x, modulation=12):
         batch_size, seq_len = x.shape  # 只考虑2维张量，确保输入形状为 [batch_size, seq_len]
@@ -24,7 +29,6 @@ class CNNReduce(nn.Module):
         if padding_needed > 0:
             # 在第二维度 (时间维度) 末尾填充 zeros
             x = F.pad(x, (0, padding_needed), "constant", 0)  # 只在 seq_len 维度后面填充
-        # 重新调整形状，确保时间维度能被 modulation 整除
         x = x.view(batch_size, desired_len // modulation, modulation)  # [bs,seq_len/modulation,modulation]
         return x
 
@@ -32,21 +36,24 @@ class CNNReduce(nn.Module):
         x = self.Padding(x, self.args.modulation)# 输入形状为 [bs, 1366,12]
         assert x.shape[1] == 1366 and x.shape[2]==12, f"x.shape is {x.shape}"
         x = x.permute(0, 2, 1)  # 变为 [bs, 12, 1366]
-        x = F.gelu(self.bn1(self.conv1(x)))
-        x = F.gelu(self.bn2(self.conv2(x)))
-        x = x.permute(0, 2, 1)  # 变为 [bs,1366,12,]
-        return x
-
+        out = 0
+        # 遍历每个卷积核大小
+        for i, kernel_size in enumerate(self.kernel_sizes):
+            # 使用不同卷积核的卷积操作
+            x_up = F.gelu(self.bn_ups[i](self.conv_ups[i](x)))  # 升维卷积
+            out += x_up  # 累加不同卷积核的结果
+        out = out.permute(0, 2, 1)  # 变为 [bs, 1366, d_model]
+        return out
 class Model(nn.Module):
-    def __init__(self,args,cnn_dims=[64,128,192]):
+    def __init__(self,args):
         super().__init__()
         self.args = args
 
         self.Transformer_model_time = transformer.Model(args)
-        self.Reduce_layers_time = nn.ModuleList([CNNReduce(args, dim) for dim in cnn_dims])
+        self.Reduce_layers_time = MixerReduce(args)
 
         self.Transformer_model_freq = transformer.Model(args)
-        self.Reduce_layers_freq = nn.ModuleList([CNNReduce(args, dim) for dim in cnn_dims])
+        self.Reduce_layers_freq = MixerReduce(args)
     def forward(self, x):
         # input  = bs,16384,2
 

@@ -132,3 +132,61 @@ class Classifier_Dataset():
         return len(self.label)
 
 
+class Diagnosis_Dataset():
+    def __init__(self, args, flag='valid',quickLoad=True,ratio=0.6):
+        assert flag in ['train', 'valid', 'test']
+        type_map = {'train': 0, 'valid': 1, 'test': 2}
+        self.args = args
+        self.quickLoad = quickLoad
+        self.ratio = ratio
+        self.set_type = type_map[flag]
+        self.__load__()
+        self.__process__()
+    def __load__(self):
+        if os.path.exists(os.path.join(self.args.path, "abnormal-data.npy")):
+            self.AbnormalDataset = MakeDataset(self.args, pattern='abnormal', quickLoad=self.quickLoad)
+        else:
+            print("abnormal-data.npy not found!")
+            self.AbnormalDataset = MakeDataset(self.args, pattern='abnormal', quickLoad=False)
+    def __process__(self):
+        data = self.AbnormalDataset.get_data()  # abnormal # [9,30*fileNum,16384,2] = [9,480,16384,2]
+        num_classes,itr,length,channel = data.shape
+        total = num_classes * itr
+        n = 3 #anomaly num
+        new_data = []
+        for i in range(num_classes):
+            time = data[i, :, :, 0]
+            s = MinMaxScaler()
+            time = s.fit_transform(time)
+            freq = data[i, :, :, 1]
+            s = MinMaxScaler()
+            freq = s.fit_transform(freq)  # 480，16384
+            data[i] = np.append(time.reshape(itr, length, 1), freq.reshape(itr, length, 1), axis=2)
+        for i in range(n):
+            new_data.append(data[:, i * (total//n//num_classes):(i + 1) * (total//n//num_classes), :, :].reshape(-1, length, channel)) #(9,120,16384,2) => 1080,16384,2
+        data = np.array(new_data)
+        label = np.array([i for i in range(n) for _ in range(total//n)]).reshape(-1)
+        data = data.reshape(-1, self.args.seq_len, self.args.seq_ch)
+        data,label = shuffle(data,label)
+        border1s = [0, int(total * self.ratio), int(total * (1+self.ratio) // 2)]
+        border2s = [int(total * self.ratio), int(total * (1+self.ratio) // 2), total]
+        border1 = border1s[self.set_type]
+        border2 = border2s[self.set_type]
+        self.data = data[border1:border2]
+        self.label = label[border1:border2]
+    def __getitem__(self, index):
+        return self.data[index], self.label[index]
+    def __len__(self):
+        return len(self.label)
+
+# if __name__ == '__main__':
+#     class args():
+#         def __init__(self):
+#             self.batch_size = 8
+#             self.seq_len = 16384
+#             self.seq_ch = 2
+#             self.iteration = 540
+#             # self.path = "D:\lumin\DATASET/540itr"
+#             self.path = "D:\lumin\DATASET/540forclassifier"
+#     args_ = args()
+#     b = Diagnosis_Dataset(args_)

@@ -6,7 +6,7 @@ import os
 import glob
 
 class MakeDataset():
-    def __init__(self,args,pattern='abnormal',scale=True,quickLoad=False,distanceNum=9,scaleMethod="std"):
+    def __init__(self,args,pattern='abnormal',scale=False,quickLoad=False,distanceNum=9,scaleMethod="std"):
         assert pattern in ['abnormal', 'normal'] ,"wrong pattern"
         if quickLoad:
             self.data = np.load(os.path.join(args.path,pattern + "-" + 'data.npy'))
@@ -47,13 +47,15 @@ class MakeDataset():
             self.scalerx_time = time_scalers
             self.scalerx_freq = freq_scalers
         data = np.concatenate((np.expand_dims(time_data, -1), np.expand_dims(freq_data, -1)),axis=-1)  # [9,30*fileNum,16384,2]
-        data = winsorize_per_channel(data)
+        # data = winsorize_per_channel(data)
         return data
     def __readSingleFolder__(self,directory):
         txt_files = glob.glob(os.path.join(directory, '*.txt'))
         res = np.array([])
         for file in txt_files:         # 遍历并打开每个txt文件
+            print(file)
             with open(file, 'r') as file:
+
                 lines = file.readlines()
                 amplitudes = []
                 started_reading = False
@@ -113,25 +115,33 @@ def winsorize_per_channel(data, lower_percentile=0.03, upper_percentile=0.97):
 
     return data
 
-# if __name__ == '__main__':
-#     class args():
-#         def __init__(self):
-#             self.batch_size = 8
-#             self.seq_len = 16384
-#             self.seq_ch = 2
-#             self.iteration = 540
-#             self.path = "D:\lumin\DATASET/540itr"
-#     args_ = args()
-#     b = MakeDataset(args_, pattern='normal', quickLoad=True)
-#     data_new = b.get_data()
-#     print(data_new.shape)
-#     args_.iteration = 270
-#     args_.path = "D:\lumin\DATASET\\NewData"
-#     c = MakeDataset(args_, pattern='normal',quickLoad=True)
-#     data_old = c.get_data()
-#     print(data_old.shape)
-#     data = np.concatenate((data_new, data_old), axis=1)
-#     b.data = data
-#     print(data.shape)
-#     np.save(os.path.join("D:\lumin\DATASET/540itr","normal" + "-" + 'data.npy'), data)
-#     print("done")
+
+
+if __name__ == '__main__':
+
+    class args():
+        def __init__(self):
+            self.batch_size = 8
+            self.seq_len = 16384
+            self.seq_ch = 2
+            self.iteration = 540
+            # self.path = "D:\lumin\DATASET/540forDiagnosis"
+            # self.path = "D:\lumin\DATASET/540itr"
+            self.path = "D:\lumin\DATASET/540forclassifier"
+    args_ = args()
+    c = MakeDataset(args_, pattern='abnormal', quickLoad=False, scale=False)
+    data_abnormal = c.get_data()
+    print(data_abnormal.shape)
+
+
+    # args_.iteration = 270
+    # args_.path = "D:\lumin\DATASET\\NewData"
+    # c = MakeDataset(args_, pattern='normal',quickLoad=False,scale=False)
+    # data_old = c.get_data()
+    # print(data_old.shape)
+    #
+    # data = np.concatenate((data_new, data_old), axis=1)
+    # b.data = data
+    # print(data.shape)
+    # np.save(os.path.join("D:\lumin\DATASET/540itr","normal" + "-" + 'data.npy'), data)
+    # print("done")
